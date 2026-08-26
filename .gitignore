@@ -5,6 +5,7 @@ npm-debug.log*
 .env
 
 # Packed extension builds
+dist/
 *.zip
 *.crx
 *.pem

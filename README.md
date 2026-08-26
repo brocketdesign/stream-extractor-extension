@@ -1,4 +1,4 @@
-# Stream Extractor — Chrome extension
+# Stream Extractor — browser extension
 
 Browse normally. When a page has video on it, the toolbar icon shows how many
 streams were found — click it, pick one, and it opens in a built-in player tab.
@@ -26,15 +26,52 @@ most of that:
 - **It sees the page you see.** Paywalled, region-locked, and logged-in pages
   work because it's your browser doing the looking.
 
+## Browser support
+
+One Chromium MV3 package, one codebase — a second copy per browser would only
+drift and double every bug fix.
+
+| Browser | Status |
+|---|---|
+| Chrome | Supported |
+| **Opera** | **Supported** — Opera 133 runs Chromium 147, comfortably past the `minimum_chrome_version: 116` floor |
+| Edge, Brave, Vivaldi | Supported (same Chromium extension APIs) |
+| Firefox | Not supported — see below |
+
+Every extension API this uses (`webRequest`, `webNavigation`,
+`declarativeNetRequest`, `downloads`, `storage.session`, `tabs`, `action`) is
+standard Chromium, with nothing Chrome-exclusive. Firefox is the real
+exception: it uses the `browser.*` namespace with a different background model
+and no `declarativeNetRequestWithHostAccess`, so the Referer spoofing and the
+service worker would both need rewriting. That's a port, not a repackage.
+
 ## Install
 
-Not on the Web Store — load it unpacked:
+Not on any store yet — load it unpacked.
+
+**Opera**
 
 1. Clone this repo.
-2. Open `chrome://extensions`.
+2. Open `opera:extensions`.
 3. Turn on **Developer mode** (top right).
 4. **Load unpacked** → select the repo folder.
-5. Pin the icon so the badge count stays visible.
+5. Pin the icon from the extensions menu so the badge count stays visible.
+
+**Chrome, Edge, Brave, Vivaldi**
+
+Identical, at `chrome://extensions` (`edge://extensions`, `brave://extensions`,
+`vivaldi://extensions`).
+
+### Building a store package
+
+```bash
+./tools/package.sh
+```
+
+Produces `dist/stream-extractor-<version>.zip` containing only what the
+extension loads at runtime. The same artifact goes to the Chrome Web Store and
+the [Opera add-ons gallery](https://addons.opera.com/developer/) — both accept
+Chromium MV3 packages.
 
 ## Use
 
