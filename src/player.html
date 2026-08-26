@@ -3,16 +3,53 @@
 <title>Stream Extractor — player</title>
 <link rel="stylesheet" href="player.css">
 <div class="wrap">
-  <video id="video" controls autoplay playsinline></video>
+  <div class="topbar">
+    <span class="tag" id="kind">—</span>
+    <span id="srcHost" class="host"></span>
+    <a class="link" id="libraryLink" href="library.html">Library →</a>
+  </div>
+
+  <video id="video" controls playsinline></video>
   <div id="msg" class="msg">loading…</div>
-  <div class="meta">
-    <div class="line"><span class="tag" id="kind">—</span> <code id="src"></code></div>
+
+  <section class="panel">
+    <h2>Download</h2>
+    <div class="row" id="qualityRow" hidden>
+      <label for="quality">Quality</label>
+      <select id="quality"></select>
+    </div>
+    <div class="btns">
+      <button id="download" class="primary">⬇ Download &amp; add to library</button>
+      <button id="cancel" hidden>Cancel</button>
+    </div>
+    <div class="progress" id="progressWrap" hidden>
+      <div class="bar"><div class="fill" id="progressFill"></div></div>
+      <div class="progressText" id="progressText"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="alsoDisk" checked> also save a file to Downloads</label>
+  </section>
+
+  <section class="panel">
+    <h2>Screenshot</h2>
+    <div class="btns">
+      <button id="shot">📷 Capture current frame</button>
+    </div>
+    <div class="hint" id="shotHint">Saved to the library alongside the video.</div>
+    <div class="shots" id="shots"></div>
+  </section>
+
+  <section class="panel">
+    <div class="line"><code id="src"></code></div>
     <div class="line" id="refline" hidden>Referer sent: <code id="ref"></code></div>
     <div class="btns">
       <button id="copy">Copy stream URL</button>
       <button id="copyff">Copy ffmpeg command</button>
     </div>
-  </div>
+  </section>
 </div>
 <script src="../vendor/hls.min.js"></script>
+<script src="../vendor/mux.min.js"></script>
+<script src="library.js"></script>
+<script src="download.js"></script>
+<script src="remux.js"></script>
 <script src="player.js"></script>

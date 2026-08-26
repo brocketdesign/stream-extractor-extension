@@ -3,6 +3,7 @@ const statusEl = document.getElementById('status');
 const segToggle = document.getElementById('showSegments');
 
 let current = { pageUrl: '', streams: [] };
+let activeTab = null;
 
 function shorten(url, max = 140) {
   return url.length > max ? url.slice(0, max) + '…' : url;
@@ -59,7 +60,21 @@ function render() {
           type: 'OPEN_PLAYER',
           url: s.url,
           kind: s.kind,
-          pageUrl: s.frameUrl || current.pageUrl
+          pageUrl: s.frameUrl || current.pageUrl,
+          tabUrl: activeTab ? activeTab.url : '',
+          tabTitle: activeTab ? activeTab.title : ''
+        });
+        window.close();
+      }),
+      button('⬇ Download', () => {
+        chrome.runtime.sendMessage({
+          type: 'OPEN_PLAYER',
+          url: s.url,
+          kind: s.kind,
+          pageUrl: s.frameUrl || current.pageUrl,
+          autoDownload: true,
+          tabUrl: activeTab ? activeTab.url : '',
+          tabTitle: activeTab ? activeTab.title : ''
         });
         window.close();
       }),
@@ -98,6 +113,7 @@ async function copy(text, btn) {
 
 async function activeTabId() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTab = tab || null;
   return tab ? tab.id : null;
 }
 
@@ -125,6 +141,12 @@ document.getElementById('clear').addEventListener('click', async () => {
   const tabId = await activeTabId();
   await chrome.runtime.sendMessage({ type: 'CLEAR', tabId });
   refresh();
+});
+
+document.getElementById('libraryLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ type: 'OPEN_LIBRARY' });
+  window.close();
 });
 
 segToggle.addEventListener('change', render);

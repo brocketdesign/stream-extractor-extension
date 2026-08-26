@@ -289,17 +289,35 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === 'OPEN_PLAYER') {
     const referer = msg.referer || originOf(msg.pageUrl || msg.url);
-    const url = chrome.runtime.getURL(
-      'src/player.html?src=' +
-        encodeURIComponent(msg.url) +
-        '&kind=' +
-        encodeURIComponent(msg.kind || '') +
-        '&ref=' +
-        encodeURIComponent(referer)
-    );
+    const query = new URLSearchParams({
+      src: msg.url,
+      kind: msg.kind || '',
+      ref: referer,
+      // Where it came from, so library entries can be traced back to a site.
+      page: msg.tabUrl || msg.pageUrl || '',
+      title: msg.tabTitle || ''
+    });
+    if (msg.autoDownload) query.set('dl', '1');
+
+    const url = chrome.runtime.getURL('src/player.html?' + query.toString());
     chrome.tabs.create({ url }).then(async (tab) => {
       await addRefererRule(tab.id, referer);
       sendResponse({ tabId: tab.id });
+    });
+    return true;
+  }
+
+  if (msg.type === 'OPEN_LIBRARY') {
+    const url = chrome.runtime.getURL('src/library.html');
+    // Reuse an already-open library tab rather than stacking duplicates.
+    chrome.tabs.query({ url }).then((tabs) => {
+      if (tabs.length) {
+        chrome.tabs.update(tabs[0].id, { active: true });
+        chrome.tabs.reload(tabs[0].id);
+      } else {
+        chrome.tabs.create({ url });
+      }
+      sendResponse({ ok: true });
     });
     return true;
   }

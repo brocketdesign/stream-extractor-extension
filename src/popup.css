@@ -30,4 +30,10 @@ li { border-top: 1px solid rgba(128,128,128,.25); padding: 8px 0; }
   word-break: break-all; opacity: .85; margin-bottom: 6px;
 }
 .btns { display: flex; gap: 4px; flex-wrap: wrap; }
-.foot { display: block; margin-top: 10px; font-size: 11px; opacity: .7; }
+.foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(128,128,128,.25);
+  font-size: 11px; opacity: .8;
+}
+.foot a { color: #2668c4; text-decoration: none; font-weight: 600; }
+.foot a:hover { text-decoration: underline; }

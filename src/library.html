@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stream Extractor — library</title>
+<link rel="stylesheet" href="dashboard.css">
+<header>
+  <h1>Saved videos</h1>
+  <div class="tools">
+    <select id="hostFilter"><option value="">All sites</option></select>
+    <span id="usage" class="usage"></span>
+  </div>
+</header>
+<div id="empty" class="empty" hidden>
+  <p>Nothing saved yet.</p>
+  <p class="sub">Browse to a video, click the Stream Extractor icon, hit <strong>Play</strong>,
+  then <strong>Download &amp; add to library</strong>. Saved videos show up here to replay and screenshot.</p>
+</div>
+<main id="grid" class="grid"></main>
+<script src="library.js"></script>
+<script src="dashboard.js"></script>
