@@ -104,6 +104,29 @@ Also handled: **AES-128 encrypted** playlists (decrypted via WebCrypto, keys
 fetched and cached), **fMP4** playlists with `EXT-X-MAP` init segments, byte-range
 playlists, and quality selection when the master playlist offers variants.
 
+### Ad breaks, and the file that plays sound with no picture
+
+At an `EXT-X-DISCONTINUITY` — an ad break, a codec change, a stream reset —
+presentation timestamps can jump backwards. That delta is stored as an
+*unsigned* 32-bit sample duration, so a negative gap becomes a value near
+2³²: about 13 hours at the 90kHz clock. One such sample is enough to schedule
+every later frame hours away from its audio, and the download plays back as
+sound over a frozen or blank picture.
+
+Those outliers are found and reset to the track's median sample duration
+before the file is saved, and you're told when it happened.
+
+### Nothing is saved until it has been checked
+
+A remux can produce a file that is structurally valid, reports a sensible
+duration, has a real video track — and still paints nothing at all. So every
+finished download is opened by an actual decoder before it reaches your
+library or your disk: it must have a video track, a plausible duration
+matching the playlist, and a frame that is not blank.
+
+If that check fails, nothing is saved and you get the reason plus a nudge
+toward `Copy ffmpeg`, rather than a file that disappoints later.
+
 ## Library dashboard
 
 Open it from the **Library →** link in the popup or the player.
@@ -223,6 +246,9 @@ tears workers down mid-job, and a long download has to outlive that.
   to disk and carries the right `Referer`.
 - **Live streams** download only what the playlist currently lists, not an
   ongoing recording.
+- A stream that changes **resolution** mid-file (some ad breaks) keeps the
+  first segment's track configuration, so the picture may shift partway
+  through. You get a warning when this is detected.
 - **DASH (`.mpd`) downloads aren't supported** — detection and playback work,
   but assembly doesn't. Use the ffmpeg command for those.
 - Blob URLs (`blob:`) can't be opened outside their page; the underlying

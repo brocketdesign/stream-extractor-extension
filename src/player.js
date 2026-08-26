@@ -148,6 +148,8 @@ downloadBtn.addEventListener('click', async () => {
   try {
     const isHls = kind === 'hls' || /\.m3u8(\?|$)/i.test(src);
     let blob, container;
+    let expectedSeconds = 0;
+    let warnings = [];
 
     if (isHls) {
       const variantUrl = qualityRow.hidden ? null : qualitySelect.value || null;
@@ -160,13 +162,19 @@ downloadBtn.addEventListener('click', async () => {
         }
       });
       container = result.container;
+      expectedSeconds = result.duration;
 
       if (container === 'ts') {
-        // Rewrap TS as MP4 so it plays outside a browser player.
+        // Rewrap TS as MP4 so it plays outside a browser player. Segments go
+        // in one at a time so their timestamps can be rebased.
         setMsg('Remuxing to MP4…', 'busy');
-        progressText.textContent = 'remuxing (no re-encode)…';
-        const parts = await result.blob.arrayBuffer();
-        blob = await remuxTsToMp4([parts]);
+        progressFill.style.width = '0%';
+        const remuxed = await remuxTsToMp4(result.parts, result.segments, ({ done, total }) => {
+          progressFill.style.width = ((done / total) * 100).toFixed(1) + '%';
+          progressText.textContent = `remuxing ${done} / ${total} segments (no re-encode)`;
+        });
+        blob = remuxed.blob;
+        warnings = remuxed.warnings;
         container = 'mp4';
       } else {
         blob = result.blob;
@@ -192,6 +200,22 @@ downloadBtn.addEventListener('click', async () => {
       if (!['mp4', 'webm', 'm4v', 'mov'].includes(container)) container = 'mp4';
     }
 
+    // A remux can produce a structurally valid MP4 whose timeline is nonsense,
+    // which plays as sound over a frozen picture. Make a real decoder open it
+    // before it reaches the library or the disk.
+    let verified = null;
+    if (kind !== 'audio') {
+      setMsg('Checking the file…', 'busy');
+      progressText.textContent = 'verifying playback…';
+      verified = await verifyPlayable(blob, expectedSeconds);
+      if (!verified.ok) {
+        throw new Error(
+          `the download finished but ${verified.reason}. Streams with ad breaks or ` +
+            'timestamp resets sometimes need ffmpeg — use Copy ffmpeg on the Source tab.'
+        );
+      }
+    }
+
     setMsg('Saving…', 'busy');
     const filename = guessFilename(src, container);
     const poster = await grabPoster(blob);
@@ -204,7 +228,7 @@ downloadBtn.addEventListener('click', async () => {
       kind: kind || 'video',
       container,
       size: blob.size,
-      duration: video.duration && isFinite(video.duration) ? video.duration : 0,
+      duration: verified && verified.duration ? verified.duration : (isFinite(video.duration) ? video.duration : 0),
       blob,
       poster,
       savedToDisk: false
@@ -221,18 +245,17 @@ downloadBtn.addEventListener('click', async () => {
 
     progressFill.style.width = '100%';
     progressText.textContent = `${formatBytes(blob.size)} saved as ${filename}`;
-    setMsg(
-      alsoDisk.checked
-        ? `Done — added to your library and saved to Downloads/Stream Extractor/${filename}.`
-        : 'Done — added to your library.'
-    );
+    const where = alsoDisk.checked
+      ? `Done — added to your library and saved to Downloads/Stream Extractor/${filename}.`
+      : 'Done — added to your library.';
+    setMsg(warnings.length ? `${where} ${warnings.join(' ')}` : where);
     downloadBtn.textContent = '✓ In your library';
   } catch (e) {
     if (e.name === 'AbortError') {
       setMsg('Download cancelled.');
       progressText.textContent = '';
     } else {
-      setMsg('Download failed: ' + e.message, 'error');
+      setMsg('Download failed — ' + e.message, 'error');
       downloadBtn.disabled = false;
     }
   } finally {

@@ -32,11 +32,12 @@ function parseAttrs(input) {
  */
 function parseM3u8(text, baseUrl) {
   const lines = text.split(/\r?\n/);
-  const out = { isMaster: false, variants: [], segments: [], map: null, totalDuration: 0 };
+  const out = { isMaster: false, variants: [], segments: [], map: null, totalDuration: 0, discontinuities: 0 };
 
   let pendingVariant = null;
   let pendingDuration = 0;
   let pendingByteRange = null;
+  let pendingDiscontinuity = false;
   let key = null;
   let mediaSequence = 0;
 
@@ -66,6 +67,14 @@ function parseM3u8(text, baseUrl) {
         !a.METHOD || a.METHOD === 'NONE'
           ? null
           : { method: a.METHOD, uri: resolveUrl(a.URI, baseUrl), iv: a.IV || null };
+      continue;
+    }
+
+    // Marks a timeline break - ad insertion, a codec change, a PTS reset.
+    // Segments after one must have their timestamps rebased or the output
+    // timeline lands hours away from where it should.
+    if (line === '#EXT-X-DISCONTINUITY') {
+      pendingDiscontinuity = true;
       continue;
     }
 
@@ -99,12 +108,15 @@ function parseM3u8(text, baseUrl) {
         url,
         duration: pendingDuration,
         byteRange: pendingByteRange,
+        discontinuity: pendingDiscontinuity,
         key,
         sequence: mediaSequence + out.segments.length
       });
       out.totalDuration += pendingDuration;
+      if (pendingDiscontinuity) out.discontinuities++;
       pendingDuration = 0;
       pendingByteRange = null;
+      pendingDiscontinuity = false;
     }
   }
 
@@ -228,10 +240,18 @@ async function downloadHls(playlistUrl, { signal, onProgress, variantUrl } = {})
   await Promise.all(Array.from({ length: Math.min(concurrency, parsed.segments.length) }, worker));
 
   const isFmp4 = Boolean(parsed.map && parsed.map.url);
+  const ordered = parts.filter(Boolean);
+
   return {
-    blob: new Blob(parts.filter(Boolean), { type: isFmp4 ? 'video/mp4' : 'video/mp2t' }),
+    blob: new Blob(ordered, { type: isFmp4 ? 'video/mp4' : 'video/mp2t' }),
+    // Kept separate so the remuxer can push segment by segment and rebase
+    // timestamps at each discontinuity.
+    parts: ordered,
+    segments: parsed.segments.map((s) => ({ duration: s.duration, discontinuity: s.discontinuity })),
+    hasInitSegment: isFmp4,
     container: isFmp4 ? 'mp4' : 'ts',
-    duration: parsed.totalDuration
+    duration: parsed.totalDuration,
+    discontinuities: parsed.discontinuities
   };
 }
 
