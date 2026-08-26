@@ -105,7 +105,7 @@ function scheduleFlush() {
 }
 
 function entryFor(tabId) {
-  if (!cache[tabId]) cache[tabId] = { pageUrl: '', streams: [] };
+  if (!cache[tabId]) cache[tabId] = { pageUrl: '', streams: [], toasted: false };
   return cache[tabId];
 }
 
@@ -129,6 +129,7 @@ async function addStreams(tabId, incoming) {
   }
 
   if (!added) return 0;
+  maybeToast(tabId, entry);
   if (entry.streams.length > MAX_PER_TAB) {
     // Drop oldest segments first - they're the noisiest and least useful.
     entry.streams.sort((a, b) => (a.kind === 'segment' ? 1 : 0) - (b.kind === 'segment' ? 1 : 0));
@@ -137,6 +138,32 @@ async function addStreams(tabId, incoming) {
   scheduleFlush();
   paintBadge(tabId, entry);
   return added;
+}
+
+/**
+ * Offers the stream in-page so it takes one click instead of three. Fires once
+ * per page, ~1.2s after the first hit, so the burst of requests a player makes
+ * on startup settles and we can offer the best of them rather than the first.
+ */
+const toastTimers = {};
+
+function maybeToast(tabId, entry) {
+  if (entry.toasted || toastTimers[tabId]) return;
+  toastTimers[tabId] = setTimeout(() => {
+    delete toastTimers[tabId];
+    const playable = entry.streams
+      .filter((s) => s.kind !== 'segment')
+      .sort((a, b) => (KIND_RANK[a.kind] ?? 8) - (KIND_RANK[b.kind] ?? 8));
+    if (!playable.length) return;
+    entry.toasted = true;
+    scheduleFlush();
+    chrome.tabs
+      .sendMessage(tabId, { type: 'STREAM_TOAST', stream: playable[0], count: playable.length }, { frameId: 0 })
+      .catch(() => {
+        // No content script here (chrome://, PDF viewer, a frame that died) -
+        // the badge still tells the story, so this is not worth reporting.
+      });
+  }, 1200);
 }
 
 function playableCount(entry) {
@@ -151,7 +178,9 @@ function paintBadge(tabId, entry) {
 
 async function clearTab(tabId, pageUrl) {
   await hydrate();
-  cache[tabId] = { pageUrl: pageUrl || '', streams: [] };
+  clearTimeout(toastTimers[tabId]);
+  delete toastTimers[tabId];
+  cache[tabId] = { pageUrl: pageUrl || '', streams: [], toasted: false };
   scheduleFlush();
   chrome.action.setBadgeText({ tabId, text: '' }).catch(() => {});
 }

@@ -1,17 +1,21 @@
 <!doctype html>
+<html lang="en" data-theme="dark">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stream Extractor — library</title>
+<link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="dashboard.css">
-<header>
+<body>
+<header class="topbar">
   <h1>Saved videos</h1>
   <div class="tools">
-    <select id="hostFilter"><option value="">All sites</option></select>
+    <select id="hostFilter" class="select"><option value="">All sites</option></select>
     <span id="usage" class="usage"></span>
   </div>
 </header>
 <div id="empty" class="empty" hidden>
-  <p>Nothing saved yet.</p>
-  <p class="sub">Browse to a video, click the Stream Extractor icon, hit <strong>Play</strong>,
+  <p class="empty__title">Nothing saved yet</p>
+  <p class="empty__sub">Browse to a video, click the Stream Extractor icon, hit <strong>Play</strong>,
   then <strong>Download &amp; add to library</strong>. Saved videos show up here to replay and screenshot.</p>
 </div>
 <main id="grid" class="grid"></main>

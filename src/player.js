@@ -27,6 +27,9 @@ const progressText = document.getElementById('progressText');
 const shotBtn = document.getElementById('shot');
 const shotsEl = document.getElementById('shots');
 const alsoDisk = document.getElementById('alsoDisk');
+const shotCount = document.getElementById('shotCount');
+const stageSticky = document.getElementById('stageSticky');
+const stageEl = document.querySelector('.stage');
 
 let currentLibId = libId;
 let objectUrl = null;
@@ -57,6 +60,9 @@ async function startLibraryPlayback(id) {
   downloadBtn.disabled = true;
   downloadBtn.textContent = '✓ In your library';
   alsoDisk.parentElement.hidden = true;
+  document.getElementById('panel-download').querySelector('.hint').textContent =
+    'Already saved. Use Save to disk from the library to write another copy.';
+  selectTab(document.getElementById('tab-shots'));
   refreshShots();
 }
 
@@ -311,12 +317,17 @@ shotBtn.addEventListener('click', async () => {
 async function refreshShots() {
   if (!currentLibId) return;
   const shots = await Library.listShots(currentLibId);
+  shotCount.textContent = shots.length;
+  shotCount.hidden = shots.length === 0;
   shotsEl.textContent = '';
   for (const shot of shots) {
     const fig = document.createElement('figure');
     const img = document.createElement('img');
     img.src = URL.createObjectURL(shot.blob);
-    img.addEventListener('click', () => { video.currentTime = shot.time; });
+    img.addEventListener('click', () => {
+      video.currentTime = shot.time;
+      stageSticky.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     img.title = 'Jump to ' + formatTime(shot.time);
     const cap = document.createElement('figcaption');
     cap.textContent = formatTime(shot.time);
@@ -349,6 +360,45 @@ async function copy(text, btn) {
   }
   setTimeout(() => (btn.textContent = old), 1200);
 }
+
+// ---------------------------------------------------------------- tabs
+
+const tabs = [...document.querySelectorAll('.tab')];
+
+function selectTab(tab) {
+  for (const t of tabs) {
+    const selected = t === tab;
+    t.setAttribute('aria-selected', String(selected));
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !selected;
+  }
+}
+
+tabs.forEach((tab, i) => {
+  tab.addEventListener('click', () => selectTab(tab));
+  tab.addEventListener('keydown', (e) => {
+    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const next = tabs[(i + dir + tabs.length) % tabs.length];
+    next.focus();
+    selectTab(next);
+  });
+});
+
+/**
+ * On narrow screens the tab bar sticks directly beneath the sticky video, so
+ * it needs the video's rendered height. Measuring beats guessing - this holds
+ * through rotation, resizes and the aspect-ratio box settling after load.
+ */
+function trackStageHeight() {
+  const apply = () => {
+    document.documentElement.style.setProperty('--stage-h', stageEl.offsetHeight + 'px');
+  };
+  apply();
+  if (window.ResizeObserver) new ResizeObserver(apply).observe(stageEl);
+  window.addEventListener('orientationchange', () => setTimeout(apply, 250));
+}
+trackStageHeight();
 
 window.addEventListener('beforeunload', () => {
   if (objectUrl) URL.revokeObjectURL(objectUrl);

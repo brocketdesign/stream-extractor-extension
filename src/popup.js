@@ -53,7 +53,7 @@ function render() {
     url.textContent = shorten(s.url);
 
     const btns = document.createElement('div');
-    btns.className = 'btns';
+    btns.className = 'btn-row';
     btns.append(
       button('▶ Play', () => {
         chrome.runtime.sendMessage({
@@ -65,7 +65,7 @@ function render() {
           tabTitle: activeTab ? activeTab.title : ''
         });
         window.close();
-      }),
+      }, 'btn--primary'),
       button('⬇ Download', () => {
         chrome.runtime.sendMessage({
           type: 'OPEN_PLAYER',
@@ -81,11 +81,11 @@ function render() {
       button('Open raw', () => {
         chrome.runtime.sendMessage({ type: 'OPEN_RAW', url: s.url });
         window.close();
-      }),
-      button('Copy URL', (btn) => copy(s.url, btn)),
+      }, 'btn--ghost'),
+      button('Copy URL', (btn) => copy(s.url, btn), 'btn--ghost'),
       button('Copy ffmpeg', (btn) =>
         copy(ffmpegCmd(s.url, originLabel(s.frameUrl || current.pageUrl) ? new URL(s.frameUrl || current.pageUrl).origin + '/' : ''), btn)
-      )
+      , 'btn--ghost')
     );
 
     li.append(row, url, btns);
@@ -93,8 +93,9 @@ function render() {
   }
 }
 
-function button(text, onClick) {
+function button(text, onClick, cls = '') {
   const b = document.createElement('button');
+  b.className = ('btn btn--sm ' + cls).trim();
   b.textContent = text;
   b.addEventListener('click', () => onClick(b));
   return b;
@@ -141,6 +142,15 @@ document.getElementById('clear').addEventListener('click', async () => {
   const tabId = await activeTabId();
   await chrome.runtime.sendMessage({ type: 'CLEAR', tabId });
   refresh();
+});
+
+const notifyToggle = document.getElementById('notifyToggle');
+
+chrome.storage.local.get('notifyOnDetect').then((d) => {
+  notifyToggle.checked = d.notifyOnDetect !== false;
+});
+notifyToggle.addEventListener('change', () => {
+  chrome.storage.local.set({ notifyOnDetect: notifyToggle.checked });
 });
 
 document.getElementById('libraryLink').addEventListener('click', (e) => {

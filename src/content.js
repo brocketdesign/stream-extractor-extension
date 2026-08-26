@@ -121,6 +121,13 @@ function report() {
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  // Rendered by toast.js, which loads ahead of this file.
+  if (msg.type === 'STREAM_TOAST') {
+    showToast(msg.stream, msg.count);
+    sendResponse({ ok: true });
+    return false;
+  }
+
   if (msg.type === 'RESCAN') {
     const streams = scan();
     chrome.runtime.sendMessage({ type: 'ADD_STREAMS', streams }).catch(() => {});

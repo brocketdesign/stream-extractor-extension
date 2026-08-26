@@ -38,6 +38,20 @@ Not on the Web Store — load it unpacked:
 
 ## Use
 
+The quickest path is the **in-page prompt**: start a video and a small card
+slides in at the bottom-right saying *Stream detected*, with **▶ Play** and
+**⬇ Download** right there. One click instead of three. It reuses one card
+rather than stacking them, waits ~1.2s so the player's startup burst settles
+and it can offer the best stream rather than the first, and appears once per
+page. Dismiss it, turn it off from the card itself, or from the popup's
+*Pop up on the page when a stream is found*.
+
+It renders inside a **closed shadow root**, so no page stylesheet can restyle
+it and no page script can reach into it. It never appears inside embed frames,
+only the top one.
+
+If you'd rather go the manual route:
+
 1. Browse to a video page and **start the video** — network detection needs the
    player to actually request something.
 2. The badge shows the number of playable streams found.
@@ -115,6 +129,21 @@ through MSE, which keeps the canvas untainted — but a stream playing via the
 browser's native HLS path taints the canvas and the browser blocks the capture.
 You'll get a message saying so; download it first and screenshot from the library.
 
+## Layout
+
+The player keeps the video on screen while you work:
+
+- **Desktop** — video on the left, a tabbed tool rail on the right
+  (*Download* / *Shots* / *Source*). The rail scrolls internally, so the video
+  never moves. Tabs are keyboard-navigable with arrow keys.
+- **Narrow screens** — the video pins to the top of the viewport and the tab
+  bar pins directly beneath it, so both stay put while the panels scroll under.
+  The offset is measured from the rendered video rather than assumed, so it
+  survives rotation and resizes.
+
+The popup follows your system light/dark preference; the player and library are
+dark, being video surfaces.
+
 ## How detection works
 
 Two independent paths feed one per-tab list:
@@ -150,7 +179,7 @@ tab closes.
 | `webRequest` | Observe media requests (read-only; nothing is blocked or altered) |
 | `webNavigation` | Reset a tab's list when you navigate to a new page |
 | `declarativeNetRequestWithHostAccess` | Set `Referer` on the player tab's requests |
-| `storage` | `chrome.storage.session` cache — MV3 workers get torn down constantly |
+| `storage` | `chrome.storage.session` cache — MV3 workers get torn down constantly — plus your toast preference |
 | `tabs` | Open the player tab, badge the right tab |
 | `downloads` | Write finished videos and screenshots to your Downloads folder |
 | `unlimitedStorage` | Video files in IndexedDB blow past the default quota fast |
@@ -166,6 +195,8 @@ it only ever reads requests the page was already making.
 manifest.json         MV3 manifest
 src/background.js     service worker: sniffing, per-tab store, referer rules
 src/content.js        in-page DOM + player-config scanner (all frames)
+src/ui.css            shared tokens: buttons, links, tabs, badges, inputs
+src/toast.js          the in-page "stream detected" prompt (shadow DOM)
 src/popup.*           the stream list
 src/player.*          player tab: playback, downloading, screenshots
 src/download.js       HLS manifest parsing, AES-128, segment assembly

@@ -1,51 +1,77 @@
 <!doctype html>
+<html lang="en" data-theme="dark">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stream Extractor — player</title>
+<link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="player.css">
-<div class="wrap">
-  <div class="topbar">
-    <span class="tag" id="kind">—</span>
-    <span id="srcHost" class="host"></span>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <span class="badge badge--brand" id="kind">—</span>
+    <span class="host" id="srcHost"></span>
     <a class="link" id="libraryLink" href="library.html">Library →</a>
+  </header>
+
+  <div class="stage">
+    <div class="stage__sticky" id="stageSticky">
+      <video id="video" controls playsinline></video>
+      <p id="msg" class="msg">loading…</p>
+    </div>
   </div>
 
-  <video id="video" controls playsinline></video>
-  <div id="msg" class="msg">loading…</div>
+  <aside class="rail">
+    <div class="rail__head" id="railHead">
+      <nav class="tabs" role="tablist" aria-label="Tools">
+        <button class="tab" role="tab" id="tab-download" aria-selected="true" aria-controls="panel-download">Download</button>
+        <button class="tab" role="tab" id="tab-shots" aria-selected="false" aria-controls="panel-shots">
+          Shots <span class="count" id="shotCount" hidden>0</span>
+        </button>
+        <button class="tab" role="tab" id="tab-source" aria-selected="false" aria-controls="panel-source">Source</button>
+      </nav>
+    </div>
 
-  <section class="panel">
-    <h2>Download</h2>
-    <div class="row" id="qualityRow" hidden>
-      <label for="quality">Quality</label>
-      <select id="quality"></select>
-    </div>
-    <div class="btns">
-      <button id="download" class="primary">⬇ Download &amp; add to library</button>
-      <button id="cancel" hidden>Cancel</button>
-    </div>
-    <div class="progress" id="progressWrap" hidden>
-      <div class="bar"><div class="fill" id="progressFill"></div></div>
-      <div class="progressText" id="progressText"></div>
-    </div>
-    <label class="check"><input type="checkbox" id="alsoDisk" checked> also save a file to Downloads</label>
-  </section>
+    <div class="rail__body">
+      <section class="panel" id="panel-download" role="tabpanel" aria-labelledby="tab-download">
+        <div class="field" id="qualityRow" hidden>
+          <label class="field__label" for="quality">Quality</label>
+          <select class="select" id="quality"></select>
+        </div>
 
-  <section class="panel">
-    <h2>Screenshot</h2>
-    <div class="btns">
-      <button id="shot">📷 Capture current frame</button>
-    </div>
-    <div class="hint" id="shotHint">Saved to the library alongside the video.</div>
-    <div class="shots" id="shots"></div>
-  </section>
+        <button id="download" class="btn btn--primary btn--block">⬇ Download &amp; add to library</button>
 
-  <section class="panel">
-    <div class="line"><code id="src"></code></div>
-    <div class="line" id="refline" hidden>Referer sent: <code id="ref"></code></div>
-    <div class="btns">
-      <button id="copy">Copy stream URL</button>
-      <button id="copyff">Copy ffmpeg command</button>
+        <div class="progress" id="progressWrap" hidden>
+          <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+          <p class="progress__text" id="progressText"></p>
+          <button id="cancel" class="btn btn--sm btn--block" hidden>Cancel</button>
+        </div>
+
+        <label class="check"><input type="checkbox" id="alsoDisk" checked> Also save a file to Downloads</label>
+        <p class="hint">Saved as MP4 — HLS segments are remuxed, never re-encoded.</p>
+      </section>
+
+      <section class="panel" id="panel-shots" role="tabpanel" aria-labelledby="tab-shots" hidden>
+        <button id="shot" class="btn btn--block">📷 Capture current frame</button>
+        <p class="hint" id="shotHint">Stored with the video and written to Downloads. Click a thumbnail to jump back.</p>
+        <div class="shots" id="shots"></div>
+      </section>
+
+      <section class="panel" id="panel-source" role="tabpanel" aria-labelledby="tab-source" hidden>
+        <p class="field__label">Stream URL</p>
+        <code class="code-block" id="src"></code>
+        <div id="refline" hidden>
+          <p class="field__label">Referer sent</p>
+          <code class="code-block" id="ref"></code>
+        </div>
+        <div class="btn-row">
+          <button id="copy" class="btn btn--sm">Copy URL</button>
+          <button id="copyff" class="btn btn--sm">Copy ffmpeg</button>
+        </div>
+      </section>
     </div>
-  </section>
+  </aside>
+
 </div>
 <script src="../vendor/hls.min.js"></script>
 <script src="../vendor/mux.min.js"></script>

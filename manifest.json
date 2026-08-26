@@ -43,6 +43,7 @@
       ],
       "all_frames": true,
       "js": [
+        "src/toast.js",
         "src/content.js"
       ],
       "run_at": "document_idle"

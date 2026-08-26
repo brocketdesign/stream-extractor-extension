@@ -35,8 +35,8 @@ function formatDuration(s) {
 
 function button(label, cls, onClick) {
   const b = document.createElement('button');
+  b.className = ('btn btn--sm ' + (cls || '')).trim();
   b.textContent = label;
-  if (cls) b.className = cls;
   b.addEventListener('click', onClick);
   return b;
 }
@@ -76,7 +76,7 @@ async function card(rec) {
   if (rec.pageUrl) from.title = rec.pageUrl;
 
   const when = document.createElement('div');
-  when.className = 'meta';
+  when.className = 'meta meta--faint';
   when.textContent = new Date(rec.savedAt).toLocaleString();
 
   const badges = document.createElement('div');
@@ -85,12 +85,12 @@ async function card(rec) {
     [(rec.container || 'mp4').toUpperCase(), ''],
     [formatBytes(rec.size), ''],
     [formatDuration(rec.duration), ''],
-    [rec.savedToDisk ? 'on disk' : '', 'disk'],
-    [rec.shots ? `${rec.shots} shot${rec.shots === 1 ? '' : 's'}` : '', 'shots']
+    [rec.savedToDisk ? 'on disk' : '', 'badge--good'],
+    [rec.shots ? `${rec.shots} shot${rec.shots === 1 ? '' : 's'}` : '', 'badge--violet']
   ]) {
     if (!text) continue;
     const b = document.createElement('span');
-    b.className = 'badge ' + cls;
+    b.className = ('badge ' + cls).trim();
     b.textContent = text;
     badges.append(b);
   }
@@ -98,7 +98,7 @@ async function card(rec) {
   const actions = document.createElement('div');
   actions.className = 'actions';
   actions.append(
-    button('▶ Play', 'primary', () => openPlayer(rec.id)),
+    button('▶ Play', 'btn--primary', () => openPlayer(rec.id)),
     button(rec.savedToDisk ? 'Save again' : '⬇ Save to disk', '', async (e) => {
       const btn = e.target;
       btn.textContent = 'Saving…';
@@ -115,7 +115,7 @@ async function card(rec) {
       btn.textContent = 'Saved ✓';
       render();
     }),
-    button('Delete', 'danger', async () => {
+    button('Delete', 'btn--danger', async () => {
       if (!confirm(`Delete "${rec.title || 'this video'}" and its screenshots from the library?\n\nAnything already written to your Downloads folder stays there.`)) return;
       await Library.deleteVideo(rec.id);
       load();

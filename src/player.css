@@ -1,47 +1,163 @@
-:root { color-scheme: dark; }
-body {
-  margin: 0; background: #101012; color: #e8e8ea;
-  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+/* Layout: video stage beside a tabbed tool rail on desktop; on narrow screens
+   the video and the tab bar stick to the top together, so the video stays on
+   screen while you work through the tools below it. */
+
+.shell {
+  display: grid;
+  gap: 16px 20px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-areas:
+    "head head"
+    "stage rail";
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 16px 40px;
 }
-.wrap { max-width: 1000px; margin: 0 auto; padding: 16px 16px 48px; }
-.topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.host { font-size: 12px; opacity: .7; }
-.link { margin-left: auto; color: #7fb2ff; text-decoration: none; font-size: 13px; }
-.link:hover { text-decoration: underline; }
-video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; display: block; }
-.msg { margin: 10px 0 4px; font-size: 13px; opacity: .8; }
-.msg.error { color: #ff8a80; opacity: 1; }
-.msg.busy { color: #ffd479; opacity: 1; }
-.panel { border-top: 1px solid #2a2a2e; margin-top: 18px; padding-top: 14px; }
-.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; opacity: .6; margin: 0 0 10px; }
-.line { margin-bottom: 8px; overflow-wrap: anywhere; }
-code { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #b9c6d6; }
-.tag {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-  background: #c0392b; padding: 2px 6px; border-radius: 4px;
+
+.topbar {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-label { font-size: 12px; opacity: .8; }
-select {
-  font: inherit; font-size: 12px; background: #1d1d21; color: inherit;
-  border: 1px solid #34343a; border-radius: 6px; padding: 4px 8px;
+.host { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .link { margin-left: auto; font-size: 13px; }
+
+/* ------------------------------------------------------------- stage */
+
+.stage { grid-area: stage; min-width: 0; }
+.stage__sticky { position: sticky; top: 14px; }
+
+video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: var(--radius);
+  display: block;
+  box-shadow: var(--shadow);
 }
-.btns { display: flex; gap: 6px; flex-wrap: wrap; }
-button {
-  font: inherit; font-size: 12px; padding: 6px 11px; cursor: pointer; color: inherit;
-  background: #1d1d21; border: 1px solid #34343a; border-radius: 6px;
+
+.msg { margin: 10px 2px 0; font-size: 12.5px; color: var(--muted); }
+.msg.error { color: #ff9d8f; }
+.msg.busy { color: #ffd479; }
+
+/* -------------------------------------------------------------- rail */
+
+.rail {
+  grid-area: rail;
+  min-width: 0;
+  position: sticky;
+  top: 14px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 28px);
 }
-button:hover:not(:disabled) { background: #26262c; }
-button:disabled { opacity: .45; cursor: default; }
-button.primary { background: #c0392b; border-color: #d0432f; font-weight: 600; }
-button.primary:hover:not(:disabled) { background: #d0432f; }
-.progress { margin-top: 12px; }
-.bar { height: 6px; background: #1d1d21; border-radius: 3px; overflow: hidden; }
-.fill { height: 100%; width: 0; background: #c0392b; transition: width .18s ease; }
-.progressText { font-size: 12px; opacity: .75; margin-top: 6px; }
-.check { display: block; margin-top: 12px; font-size: 12px; opacity: .8; }
-.hint { font-size: 12px; opacity: .6; margin-top: 8px; }
-.shots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.shots figure { margin: 0; width: 150px; }
-.shots img { width: 100%; border-radius: 5px; display: block; border: 1px solid #2a2a2e; }
-.shots figcaption { font-size: 11px; opacity: .6; margin-top: 3px; }
+.rail__head { flex: none; }
+.rail__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.panel > * + * { margin-top: 12px; }
+.panel > p + code, .panel > .field__label + .code-block { margin-top: 5px; }
+
+.field { display: flex; align-items: center; gap: 9px; }
+.field .select { flex: 1; min-width: 0; }
+.field__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0;
+}
+
+.hint { font-size: 11.5px; color: var(--faint); margin: 0; line-height: 1.45; }
+
+.code-block {
+  display: block;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  overflow-wrap: anywhere;
+  font-size: 11.5px;
+}
+
+.progress__text { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+.progress > .btn { margin-top: 9px; }
+
+.shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.shots figure { margin: 0; }
+.shots img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+.shots img:hover { border-color: var(--brand); }
+.shots figcaption { font-size: 10.5px; color: var(--faint); margin-top: 3px; }
+
+/* ------------------------------------------------------------ narrow */
+
+@media (max-width: 940px) {
+  /* Block layout, not grid: a sticky element can only travel inside its
+     containing block, and a grid item is capped at its own grid area - which
+     is exactly the video's height, leaving it nowhere to stick. As block
+     children of a full-height .shell, both the video and the tab bar have the
+     whole page to travel through. */
+  .shell {
+    display: block;
+    padding: 12px 12px 40px;
+  }
+
+  .topbar { margin-bottom: 10px; }
+
+  /* Video pinned to the top of the viewport… */
+  .stage {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--bg);
+    margin: 0 -12px;
+    padding: 0 12px 8px;
+  }
+  .stage__sticky { position: static; }
+  video { border-radius: var(--radius-sm); }
+  .msg { margin-top: 7px; }
+
+  /* …with the tab bar pinned directly beneath it. --stage-h is measured in
+     player.js, so this holds through rotation and resizes. */
+  .rail {
+    position: static;
+    max-height: none;
+    display: block;
+  }
+  .rail__head {
+    position: sticky;
+    top: var(--stage-h, 220px);
+    z-index: 2;
+    background: var(--bg);
+    padding: 6px 12px 8px;
+    margin: 0 -12px;
+  }
+  .rail__body { overflow: visible; margin-top: 10px; }
+  .shots { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .shots { grid-template-columns: repeat(2, 1fr); }
+}

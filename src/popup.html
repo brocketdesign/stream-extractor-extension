@@ -1,17 +1,24 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="popup.css">
-<div class="head">
+<body>
+<header class="head">
   <strong>Streams on this page</strong>
-  <span class="actions">
-    <button id="rescan" title="Scan the page again">Rescan</button>
-    <button id="clear" title="Forget everything found on this tab">Clear</button>
+  <span class="btn-row">
+    <button id="rescan" class="btn btn--sm btn--ghost" title="Scan the page again">Rescan</button>
+    <button id="clear" class="btn btn--sm btn--ghost" title="Forget everything found on this tab">Clear</button>
   </span>
-</div>
-<div id="status" class="status">scanning…</div>
+</header>
+<p id="status" class="status">scanning…</p>
 <ul id="list"></ul>
-<div class="foot">
-  <label><input type="checkbox" id="showSegments"> show HLS segments</label>
-  <a href="#" id="libraryLink">Library →</a>
-</div>
+<footer class="foot">
+  <div class="foot__row">
+    <label class="check"><input type="checkbox" id="showSegments"> Show HLS segments</label>
+    <a href="#" id="libraryLink" class="link">Library →</a>
+  </div>
+  <label class="check"><input type="checkbox" id="notifyToggle"> Pop up on the page when a stream is found</label>
+</footer>
 <script src="popup.js"></script>
