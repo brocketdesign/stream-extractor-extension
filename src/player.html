@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stream Extractor — player</title>
+<link rel="stylesheet" href="player.css">
+<div class="wrap">
+  <video id="video" controls autoplay playsinline></video>
+  <div id="msg" class="msg">loading…</div>
+  <div class="meta">
+    <div class="line"><span class="tag" id="kind">—</span> <code id="src"></code></div>
+    <div class="line" id="refline" hidden>Referer sent: <code id="ref"></code></div>
+    <div class="btns">
+      <button id="copy">Copy stream URL</button>
+      <button id="copyff">Copy ffmpeg command</button>
+    </div>
+  </div>
+</div>
+<script src="../vendor/hls.min.js"></script>
+<script src="player.js"></script>

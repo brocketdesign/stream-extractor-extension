@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+.DS_Store
+*.log
+.env
+
+# Packed extension builds
+*.zip
+*.crx
+*.pem

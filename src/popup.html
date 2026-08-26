@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="popup.css">
+<div class="head">
+  <strong>Streams on this page</strong>
+  <span class="actions">
+    <button id="rescan" title="Scan the page again">Rescan</button>
+    <button id="clear" title="Forget everything found on this tab">Clear</button>
+  </span>
+</div>
+<div id="status" class="status">scanning…</div>
+<ul id="list"></ul>
+<label class="foot"><input type="checkbox" id="showSegments"> show HLS segments</label>
+<script src="popup.js"></script>
