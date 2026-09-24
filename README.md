@@ -1,10 +1,13 @@
 # Stream Extractor — browser extension
 
 Browse normally. When a page has video on it, the toolbar icon shows how many
-streams were found — click it, pick one, and it opens in a built-in player tab.
-From there you can download it as a real MP4, keep it in a library dashboard
-that remembers which site it came from, and replay it or screenshot scenes
-later.
+streams were found — click it, and each one is listed **with a preview frame
+pulled from the video itself**, plus its duration and size, so you can tell at
+a glance which is which. **See all** opens a grid of everything on the page
+where you can tick several (or *Select all*) and download them in one run.
+Anything you grab plays in a built-in player tab, lands as a real MP4, and
+goes into a library dashboard that remembers which site it came from — replay
+it or screenshot scenes later.
 
 Companion to [stream-extractor](https://github.com/brocketdesign/stream-extractor)
 (the server-side extractor). This one runs entirely in the browser, so it sees
@@ -92,7 +95,10 @@ If you'd rather go the manual route:
 1. Browse to a video page and **start the video** — network detection needs the
    player to actually request something.
 2. The badge shows the number of playable streams found.
-3. Click the icon for the list. Each entry gives you:
+3. Click the icon for the list. Each entry shows a **preview frame generated
+   from the stream itself** (a slice of the file is fetched and decoded —
+   nothing is read from the page), its duration, and its size, with the usual
+   buttons:
 
 | Button | What it does |
 |---|---|
@@ -102,9 +108,33 @@ If you'd rather go the manual route:
 | **Copy URL** | The stream URL to the clipboard |
 | **Copy ffmpeg** | A ready-to-run `ffmpeg` command, `Referer` header included |
 
+The popup keeps things glanceable (six entries max); **See all N videos →**
+opens the grid page with every video on the tab.
+
 **Rescan** re-runs the DOM scan in every frame. **Clear** forgets the tab.
 HLS segments (`.ts`, `.m4s`) are hidden behind the checkbox — you almost always
 want the `.m3u8` that lists them, not the segments themselves.
+
+## The grid — many videos, one page
+
+Pages with a wall of videos (a channel, a feed, an AI gallery) produce a wall
+of look-alike URLs. **See all** opens a grid of every detected video, each
+card showing its preview, duration, size, and origin.
+
+- **Click cards** to select them, or tick **Select all**.
+- **⬇ Download N selected** runs them through the same pipeline as a single
+  download — one at a time, each card showing its own progress, remux and
+  verify status. A **Cancel** stops the run and drops what hasn't started.
+- **Save to Downloads** (toolbar) writes each finished file to
+  `~/Downloads/Stream Extractor/` in addition to the library.
+- Every card also has its own **▶ Play** and **⬇** for singles, and **↻ Refresh**
+  picks up streams detected since the page opened.
+
+Previews are generated from the stream itself, so they work on any site — but
+they are best-effort: a hotlink-protected or DRM stream keeps a placeholder,
+and DASH files show no frame (duration and size still appear when readable).
+Pages that set a `poster` attribute on their `<video>` get that image as an
+instant stand-in while the real frame loads.
 
 ## Downloading
 
@@ -257,7 +287,9 @@ src/background.js     service worker: sniffing, per-tab store, referer rules
 src/content.js        in-page DOM + player-config scanner (all frames)
 src/ui.css            shared tokens: buttons, links, tabs, badges, inputs
 src/toast.js          the in-page "stream detected" prompt (shadow DOM)
-src/popup.*           the stream list
+src/popup.*           the stream list, with preview thumbnails
+src/grid.*            the "See all" page: grid of previews, batch download
+src/thumbs.js         preview generator: frame, duration and size from the stream
 src/player.*          player tab: playback, downloading, screenshots
 src/download.js       HLS manifest parsing, AES-128, segment assembly
 src/remux.js          MPEG-TS -> MP4 via mux.js

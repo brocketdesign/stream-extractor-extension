@@ -14,6 +14,7 @@
 </header>
 <p id="status" class="status">scanning…</p>
 <ul id="list"></ul>
+<button id="seeAll" class="btn btn--block" hidden>See all videos →</button>
 <footer class="foot">
   <div class="foot__row">
     <label class="check"><input type="checkbox" id="showSegments"> Show HLS segments</label>
@@ -21,4 +22,7 @@
   </div>
   <label class="check"><input type="checkbox" id="notifyToggle"> Pop up on the page when a stream is found</label>
 </footer>
+<script src="../vendor/hls.min.js"></script>
+<script src="thumbs.js"></script>
+<script src="download.js"></script>
 <script src="popup.js"></script>

@@ -86,14 +86,18 @@ function scan() {
 
   // 1. Real <video> / <audio> elements and their <source> children.
   for (const el of document.querySelectorAll('video, audio')) {
+    // A poster attribute is a free preview for the popup/grid lists.
+    const posterRaw = el.getAttribute('poster');
+    const poster = posterRaw ? absolute(posterRaw) : null;
+    const extra = poster && /^https?:/i.test(poster) ? { poster } : {};
     for (const raw of [el.currentSrc, el.getAttribute('src')]) {
       if (!raw || raw.startsWith('blob:') || raw.startsWith('data:')) continue;
       const abs = absolute(raw);
-      if (abs) found.push({ url: abs, kind: kindOf(abs), source: 'dom', label: '<' + el.tagName.toLowerCase() + '>' });
+      if (abs) found.push({ url: abs, kind: kindOf(abs), source: 'dom', label: '<' + el.tagName.toLowerCase() + '>', ...extra });
     }
     for (const s of el.querySelectorAll('source')) {
       const abs = absolute(s.getAttribute('src') || '');
-      if (abs) found.push({ url: abs, kind: kindOf(abs), source: 'dom', label: '<source>' });
+      if (abs) found.push({ url: abs, kind: kindOf(abs), source: 'dom', label: '<source>', ...extra });
     }
   }
 

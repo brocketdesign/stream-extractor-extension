@@ -162,6 +162,24 @@ code { font: 12px/1.45 var(--mono); color: var(--muted); }
 
 /* ------------------------------------------------------------ badges */
 
+.kind {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 2.5px 7px;
+  border-radius: 5px;
+  color: #fff;
+  flex: none;
+}
+.kind.hls { background: var(--brand); }
+.kind.dash { background: #7c4dbd; }
+.kind.mp4, .kind.webm, .kind.video { background: #2d6fd1; }
+.kind.audio { background: #128a6f; }
+.kind.flv { background: #b57a1f; }
+.kind.segment { background: #6b6b74; }
+
+
 .badge {
   display: inline-flex;
   align-items: center;

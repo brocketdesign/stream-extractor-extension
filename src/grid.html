@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stream Extractor — all videos</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="grid.css">
+<body>
+
+<header class="bar">
+  <div class="bar__id">
+    <strong id="pageTitle">Videos on this page</strong>
+    <span class="muted" id="pageSub"></span>
+  </div>
+  <div class="bar__tools">
+    <label class="check"><input type="checkbox" id="selectAll"> Select all</label>
+    <button id="downloadSel" class="btn btn--primary" disabled>⬇ Download selected</button>
+    <button id="refresh" class="btn btn--ghost">↻ Refresh</button>
+    <label class="check" title="Also write each finished file to your Downloads folder"><input type="checkbox" id="alsoDisk" checked> Save to Downloads</label>
+    <a href="library.html" class="link">Library →</a>
+  </div>
+</header>
+
+<div class="runbar" id="runbar" hidden>
+  <div class="progress-bar"><div class="fill" id="runFill"></div></div>
+  <span id="runText"></span>
+  <button id="cancelRun" class="btn btn--sm btn--ghost">Cancel</button>
+</div>
+
+<p id="status" class="status"></p>
+<ul id="grid" class="grid"></ul>
+<p id="empty" class="empty" hidden>
+  No videos detected on that tab yet. Play something (or hit <em>Rescan</em> in the
+  popup), then Refresh here.
+</p>
+
+<script src="../vendor/hls.min.js"></script>
+<script src="../vendor/mux.min.js"></script>
+<script src="library.js"></script>
+<script src="download.js"></script>
+<script src="remux.js"></script>
+<script src="thumbs.js"></script>
+<script src="grid.js"></script>

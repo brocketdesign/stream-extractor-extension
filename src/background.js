@@ -351,6 +351,40 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  // The "See all" grid: every video on one tab, with previews and batch
+  // download. Its fetches need the page's Referer just like the player's do,
+  // so the same DNR rule is pinned to the grid tab.
+  if (msg.type === 'OPEN_GRID') {
+    (async () => {
+      await hydrate();
+      const entry = cache[msg.tabId] || {};
+      const pageUrl = entry.pageUrl || msg.tabUrl || '';
+      const referer = originOf(pageUrl);
+      const query = new URLSearchParams({
+        tab: String(msg.tabId),
+        ref: referer,
+        page: pageUrl,
+        title: msg.title || ''
+      });
+      const url = chrome.runtime.getURL('src/grid.html?' + query.toString());
+      // Reuse the grid already open for this source tab. Query strings can't
+      // be part of a tabs.query pattern, so filter by hand.
+      const all = await chrome.tabs.query({});
+      const mine = all.find((t) => t.url && t.url.startsWith(`${url.split('?')[0]}?tab=${msg.tabId}&`));
+      let tab;
+      if (mine) {
+        await chrome.tabs.update(mine.id, { active: true });
+        await chrome.tabs.reload(mine.id);
+        tab = mine;
+      } else {
+        tab = await chrome.tabs.create({ url });
+      }
+      if (referer) await addRefererRule(tab.id, referer);
+      sendResponse({ tabId: tab.id });
+    })();
+    return true;
+  }
+
   if (msg.type === 'OPEN_RAW') {
     chrome.tabs.create({ url: msg.url }).then(() => sendResponse({ ok: true }));
     return true;
